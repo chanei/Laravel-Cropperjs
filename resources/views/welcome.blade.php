@@ -8,6 +8,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha256-WqU1JavFxSAMcLP2WIOI+GB2zWmShMI82mTpLDcqFUg=" crossorigin="anonymous"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.6/cropper.css" integrity="sha256-jKV9n9bkk/CTP8zbtEtnKaKf+ehRovOYeKoyfthwbC8=" crossorigin="anonymous" />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.6/cropper.js" integrity="sha256-CgvH7sz3tHhkiVKh05kSUgG97YtzYNnWt6OXcmYzqHY=" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" integrity="sha512-YWzhKL2whUzgiheMoBFwW8CKV4qpHQAEuvilg9FAn5VJUDwKZZxkJNuGM4XkWuk94WCrrwslk8yWNGmY1EduTA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     </head>
     <style type="text/css">
         img {
@@ -18,8 +19,10 @@
             overflow: hidden;
             width: 160px;
             height: 160px;
-            margin: 10px;
             border: 1px solid red;
+        }
+        #side {
+            margin: 10px;
         }
         .modal-lg{
             max-width: 1000px !important;
@@ -48,7 +51,14 @@
                                     <img id="image">
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="preview"></div>
+                                    <div class="preview" id="side"></div>
+
+                                    <div class="row" id="side">
+                                        <div class="col-md-12">
+                                            <button class="btn btn-primary" id="rotate-left"><i class="fa fa-undo"></i></button>
+                                            <button class="btn btn-primary" id="rotate-right"><i class="fa fa-redo"></i></button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -94,7 +104,14 @@
                 cropper = new Cropper(image, {
                     aspectRatio: 1,
                     viewMode: 3,
-                    preview: '.preview'
+                    preview: '.preview',
+                    rotatable: true
+                });
+                $('#rotate-right').click(function() {
+                    cropper.rotate(45);
+                });
+                $('#rotate-left').click(function() {
+                    cropper.rotate(-45);
                 });
             }).on('hidden.bs.modal', function () {
                 cropper.destroy();
