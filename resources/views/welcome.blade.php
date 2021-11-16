@@ -52,11 +52,29 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="preview" id="side"></div>
+                                    <div class="options">
+                                        <label>Text</label>
+                                        <input type="text" class="form-control" id="image-text">
+
+                                        <label>Text Color</label>
+                                        <input type="text" class="form-control" id="image-text-color">
+                                        <label>Font Size</label>
+                                        <input type="text" class="form-control" id="image-text-size">
+
+                                        <label>Width</label>
+                                        <input type="text" class="form-control" id="image-width">
+                                        <br>
+                                        <label>Height</label>
+                                        <input type="text" class="form-control" id="image-height">
+                                    </div>
 
                                     <div class="row" id="side">
                                         <div class="col-md-12">
                                             <button class="btn btn-primary" id="rotate-left"><i class="fa fa-undo"></i></button>
                                             <button class="btn btn-primary" id="rotate-right"><i class="fa fa-redo"></i></button>
+                                            <br><br><br>
+                                            <button class="btn btn-primary" id="greyscale"><i class="fa fa-paint-brush"></i></button>
+                                            <button class="btn btn-primary" id="reset-greyscale"><i class="fa fa-eraser"></i></button>
                                         </div>
                                     </div>
                                 </div>
@@ -75,6 +93,7 @@
             var $modal = $('#modal');
             var image = document.getElementById('image');
             var cropper;
+            var save_black_white = false;
 
             $("body").on("change", ".image", function(e){
                 var files = e.target.files;
@@ -105,13 +124,29 @@
                     aspectRatio: 1,
                     viewMode: 3,
                     preview: '.preview',
-                    rotatable: true
+                    rotatable: true,
+                    crop(event) {
+                        document.getElementById("image-width").value = Math.round(event.detail.width);
+                        document.getElementById("image-height").value = Math.round(event.detail.height);
+                    },
                 });
                 $('#rotate-right').click(function() {
                     cropper.rotate(45);
                 });
                 $('#rotate-left').click(function() {
                     cropper.rotate(-45);
+                });
+                $('#greyscale').click(function() {
+                    $('.preview').css({
+                        'mix-blend-mode': 'luminosity',
+                    });
+                    save_black_white = true;
+                });
+                $('#reset-greyscale').click(function() {
+                    $('.preview').css({
+                        'mix-blend-mode': '',
+                    });
+                    save_black_white = false;
                 });
             }).on('hidden.bs.modal', function () {
                 cropper.destroy();
@@ -120,9 +155,26 @@
 
             $("#crop").click(function(){
                 canvas = cropper.getCroppedCanvas({
-                    width: 160,
-                    height: 160,
+                    width: $('#image-width').val(),
+                    height: $('#image-width').val(),
                 });
+
+                const ctx = canvas.getContext("2d");
+
+                // check if true and save blackwhite image
+                if(save_black_white) {
+                    let imgData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+                    let pixels = imgData.data;
+                    for (var i = 0; i < pixels.length; i += 4) {
+
+                    let lightness = parseInt((pixels[i] + pixels[i + 1] + pixels[i + 2])/3);
+
+                    pixels[i] = lightness;
+                    pixels[i + 1] = lightness;
+                    pixels[i + 2] = lightness;
+                    }
+                    ctx.putImageData(imgData, 0, 0);
+                }
 
                 canvas.toBlob(function(blob) {
                     url = URL.createObjectURL(blob);
