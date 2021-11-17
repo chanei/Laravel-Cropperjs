@@ -17,12 +17,12 @@
         }
         .preview {
             overflow: hidden;
-            width: 160px;
-            height: 160px;
+            width: 200px;
+            height: 200px;
             border: 1px solid red;
         }
         #side {
-            margin: 10px;
+            padding: 10px;
         }
         .modal-lg{
             max-width: 1000px !important;
@@ -47,34 +47,57 @@
                     <div class="modal-body">
                         <div class="img-container">
                             <div class="row">
-                                <div class="col-md-8">
+                                <div class="col-md-7">
                                     <img id="image">
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="preview" id="side"></div>
-                                    <div class="options">
-                                        <label>Text</label>
-                                        <input type="text" class="form-control" id="image-text">
-
-                                        <label>Text Color</label>
-                                        <input type="text" class="form-control" id="image-text-color">
-                                        <label>Font Size</label>
-                                        <input type="text" class="form-control" id="image-text-size">
-
-                                        <label>Width</label>
-                                        <input type="text" class="form-control" id="image-width">
-                                        <br>
-                                        <label>Height</label>
-                                        <input type="text" class="form-control" id="image-height">
-                                    </div>
-
+                                <div class="col-md-5">
                                     <div class="row" id="side">
+                                        <div class="col-md-12">
+                                            <div class="preview"></div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label>Width</label>
+                                            <input type="text" class="form-control" id="image-width">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label>Height</label>
+                                            <input type="text" class="form-control" id="image-height">
+                                        </div>
                                         <div class="col-md-12">
                                             <button class="btn btn-primary" id="rotate-left"><i class="fa fa-undo"></i></button>
                                             <button class="btn btn-primary" id="rotate-right"><i class="fa fa-redo"></i></button>
-                                            <br><br><br>
                                             <button class="btn btn-primary" id="greyscale"><i class="fa fa-paint-brush"></i></button>
                                             <button class="btn btn-primary" id="reset-greyscale"><i class="fa fa-eraser"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="row" id="side">
+                                        <div class="col-md-12">
+                                            <canvas id="textcanvas" width=200 height=200 style="border:1px solid red;"></canvas>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label>Text</label>
+                                            <input type="text" class="form-control" id="image-text">
+                                        </div>
+                                    </div>
+                                    <div class="row" id="side">
+                                        <div class="col-md-12">
+                                            <label>Text Padding</label>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label>Top</label>
+                                            <input type="text" class="form-control" id="image-text-top-padding" value="20">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label>Left</label>
+                                            <input type="text" class="form-control" id="image-text-left-padding" value="20">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label>Color</label>
+                                            <input type="text" class="form-control" id="image-text-color" value="black">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label>Size</label>
+                                            <input type="text" class="form-control" id="image-text-size" value="15">
                                         </div>
                                     </div>
                                 </div>
@@ -130,6 +153,25 @@
                         document.getElementById("image-height").value = Math.round(event.detail.height);
                     },
                 });
+
+                var textcanvas = document.getElementById("textcanvas");
+                var context = textcanvas.getContext("2d");
+                document.getElementById('image-text').addEventListener("keyup", function (evt) {
+                    var imagetext = $('#image-text').val();
+                    var toppadding = $('#image-text-top-padding').val();
+                    var leftpadding = $('#image-text-left-padding').val();
+                    var imagetextcolor = $('#image-text-color').val();
+                    var imagetextsize = $('#image-text-size').val();
+                    var maxWidth = 200 - leftpadding;
+                    var lineHeight = 25;
+
+                    context.font = context.font.replace(/\d+px/, imagetextsize + "px");
+                    context.fillStyle = imagetextcolor;
+                    // context.fillText(imagetext, leftpadding, toppadding);
+                    wrapText(context,imagetext, leftpadding, toppadding, maxWidth, lineHeight);
+
+                 }, false);
+
                 $('#rotate-right').click(function() {
                     cropper.rotate(45);
                 });
@@ -176,6 +218,23 @@
                     ctx.putImageData(imgData, 0, 0);
                 }
 
+                // text varibales
+                const imagetext = $('#image-text').val();
+                const toppadding = $('#image-text-top-padding').val();
+                const leftpadding = $('#image-text-left-padding').val();
+                const imagetextcolor = $('#image-text-color').val();
+                const imagetextsize = $('#image-text-size').val();
+                const maxWidth = $('#image-width').val() - leftpadding;
+                const lineHeight = 25;
+
+                // add text to image
+                if(imagetext.length > 0) {
+                    ctx.font = ctx.font.replace(/\d+px/, imagetextsize + "px");
+                    ctx.fillStyle = imagetextcolor;
+                    // ctx.fillText(imagetext, leftpadding, toppadding);
+                    wrapText(ctx,imagetext, leftpadding, toppadding, maxWidth, lineHeight);
+                }
+
                 canvas.toBlob(function(blob) {
                     url = URL.createObjectURL(blob);
                     var reader = new FileReader();
@@ -198,7 +257,28 @@
                         });
                     }
                 });
-            })
+            });
+
+            function wrapText(context, text, x, y, maxWidth, lineHeight) {
+                var words = text.split(' ');
+                var line = '';
+
+                for(var n = 0; n < words.length; n++) {
+                    var testLine = line + words[n] + ' ';
+                    var metrics = context.measureText(testLine);
+                    var testWidth = metrics.width;
+                    if (testWidth > maxWidth && n > 0) {
+                        context.fillText(line, x, y);
+                        line = words[n] + ' ';
+                        y += lineHeight;
+                    }
+                    else {
+                        line = testLine;
+                    }
+                }
+                context.fillText(line, x, y);
+            }
+
         </script>
     </body>
 </html>
