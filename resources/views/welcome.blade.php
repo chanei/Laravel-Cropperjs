@@ -9,6 +9,7 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.6/cropper.css" integrity="sha256-jKV9n9bkk/CTP8zbtEtnKaKf+ehRovOYeKoyfthwbC8=" crossorigin="anonymous" />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.6/cropper.js" integrity="sha256-CgvH7sz3tHhkiVKh05kSUgG97YtzYNnWt6OXcmYzqHY=" crossorigin="anonymous"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" integrity="sha512-YWzhKL2whUzgiheMoBFwW8CKV4qpHQAEuvilg9FAn5VJUDwKZZxkJNuGM4XkWuk94WCrrwslk8yWNGmY1EduTA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <script src="//unpkg.com/canvas-txt"></script>
     </head>
     <style type="text/css">
         img {
@@ -17,8 +18,8 @@
         }
         .preview {
             overflow: hidden;
-            width: 200px;
-            height: 200px;
+            width: 300px;
+            height: 300px;
             border: 1px solid red;
             position:relative;
         }
@@ -81,17 +82,22 @@
                                     </div>
                                     <div class="row" id="side">
                                         <div class="col-md-12" style="display: none">
-                                            <canvas id="textcanvas" width=200 height=200></canvas>
+                                            <canvas id="textcanvas"></canvas>
                                         </div>
                                         <div class="col-md-12">
                                             <label>Text</label>
                                             <input type="text" class="form-control" id="image-text">
                                         </div>
+                                        <div class="col-md-6">
+                                            <label>Text Align</label>
+                                            <input type="text" class="form-control" id="image-text-align" value="center">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label>Vertical Align</label>
+                                            <input type="text" class="form-control" id="image-vertical-align" value="middle">
+                                        </div>
                                     </div>
                                     <div class="row" id="side">
-                                        <div class="col-md-12">
-                                            <label>Text Padding</label>
-                                        </div>
                                         <div class="col-md-3">
                                             <label>Top</label>
                                             <input type="text" class="form-control" id="image-text-top-padding" value="20">
@@ -158,8 +164,10 @@
                     preview: '.preview',
                     rotatable: true,
                     crop(event) {
-                        document.getElementById("image-width").value = Math.round(event.detail.width);
-                        document.getElementById("image-height").value = Math.round(event.detail.height);
+                        // document.getElementById("image-width").value = Math.round(event.detail.width);
+                        // document.getElementById("image-height").value = Math.round(event.detail.height);
+                        document.getElementById("image-width").value = 300;
+                        document.getElementById("image-height").value = 300;
                     },
                 });
 
@@ -168,6 +176,12 @@
                 document.getElementById('image-text').addEventListener("keyup", function (evt) {
                     drawCanvas(textcanvas, context);
                  }, false);
+                document.getElementById('image-text-align').addEventListener('input', function (evt) {
+                    drawCanvas(textcanvas, context);
+                });
+                document.getElementById('image-vertical-align').addEventListener('input', function (evt) {
+                    drawCanvas(textcanvas, context);
+                });
                 document.getElementById('image-text-top-padding').addEventListener('input', function (evt) {
                     drawCanvas(textcanvas, context);
                 });
@@ -229,19 +243,10 @@
 
                 // text varibales
                 const imagetext = $('#image-text').val();
-                const toppadding = $('#image-text-top-padding').val();
-                const leftpadding = $('#image-text-left-padding').val();
-                const imagetextcolor = $('#image-text-color').val();
-                const imagetextsize = $('#image-text-size').val();
-                const maxWidth = $('#image-width').val() - leftpadding;
-                const lineHeight = 25;
 
                 // add text to image
                 if(imagetext.length > 0) {
-                    ctx.font = ctx.font.replace(/\d+px/, imagetextsize + "px");
-                    ctx.fillStyle = imagetextcolor;
-                    // ctx.fillText(imagetext, leftpadding, toppadding);
-                    wrapText(ctx,imagetext, leftpadding, toppadding, maxWidth, lineHeight);
+                    drawCanvas(canvas, ctx);
                 }
 
                 canvas.toBlob(function(blob) {
@@ -289,6 +294,12 @@
             }
 
             function drawCanvas(textcanvas, context) {
+                const h = 300;
+                const w = 300;
+                textcanvas.width = w;
+                textcanvas.height = h;
+                textcanvas.style.width = w;
+                textcanvas.style.height = h;
                 // get preview div
                 var pushto = document.getElementById("crop-preview");
                 // remove existing canvas
@@ -299,17 +310,31 @@
                 }
 
                 var imagetext = $('#image-text').val();
+                var textalign = $('#image-text-align').val();
+                var verticalalign = $('#image-vertical-align').val();
                 var toppadding = $('#image-text-top-padding').val();
                 var leftpadding = $('#image-text-left-padding').val();
                 var imagetextcolor = $('#image-text-color').val();
                 var imagetextsize = $('#image-text-size').val();
-                var maxWidth = 200 - leftpadding;
-                var lineHeight = 25;
+                var lineHeight = imagetextsize;
+                var maxWidth = 300 - (leftpadding *2);
+                var maxHeight = 300;
+                if(verticalalign === "top") {
+                    toppadding = 0;
+                    document.getElementById("image-text-top-padding").value = 0;
+                }
 
                 context.font = context.font.replace(/\d+px/, imagetextsize + "px");
                 context.fillStyle = imagetextcolor;
-                // context.fillText(imagetext, leftpadding, toppadding);
-                wrapText(context,imagetext, leftpadding, toppadding, maxWidth, lineHeight);
+
+                var canvasTxt = window.canvasTxt.default;
+                canvasTxt.align = textalign;
+                canvasTxt.vAlign = verticalalign;
+                canvasTxt.fontSize = imagetextsize;
+                // canvasTxt.lineHeight = lineHeight;
+                canvasTxt.debug = false;
+                canvasTxt.justify = false;
+                canvasTxt.drawText(context, imagetext, leftpadding, toppadding, maxWidth, maxHeight);
 
                 // push canvas to preview div
                 pushto.appendChild(textcanvas);
