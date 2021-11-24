@@ -20,6 +20,15 @@
             width: 200px;
             height: 200px;
             border: 1px solid red;
+            position:relative;
+        }
+        .preview img {
+            position:absolute;
+            z-index:1;
+        }
+        #textcanvas{
+            position:relative;
+            z-index:20;
         }
         #side {
             padding: 10px;
@@ -53,7 +62,7 @@
                                 <div class="col-md-5">
                                     <div class="row" id="side">
                                         <div class="col-md-12">
-                                            <div class="preview"></div>
+                                            <div class="preview" id="crop-preview"></div>
                                         </div>
                                         <div class="col-md-6">
                                             <label>Width</label>
@@ -71,8 +80,8 @@
                                         </div>
                                     </div>
                                     <div class="row" id="side">
-                                        <div class="col-md-12">
-                                            <canvas id="textcanvas" width=200 height=200 style="border:1px solid red;"></canvas>
+                                        <div class="col-md-12" style="display: none">
+                                            <canvas id="textcanvas" width=200 height=200></canvas>
                                         </div>
                                         <div class="col-md-12">
                                             <label>Text</label>
@@ -170,6 +179,8 @@
                     // context.fillText(imagetext, leftpadding, toppadding);
                     wrapText(context,imagetext, leftpadding, toppadding, maxWidth, lineHeight);
 
+                    var pushto = document.getElementById("crop-preview");
+                    pushto.appendChild(textcanvas);
                  }, false);
 
                 $('#rotate-right').click(function() {
