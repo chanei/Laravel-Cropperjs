@@ -166,22 +166,20 @@
                 var textcanvas = document.getElementById("textcanvas");
                 var context = textcanvas.getContext("2d");
                 document.getElementById('image-text').addEventListener("keyup", function (evt) {
-                    var imagetext = $('#image-text').val();
-                    var toppadding = $('#image-text-top-padding').val();
-                    var leftpadding = $('#image-text-left-padding').val();
-                    var imagetextcolor = $('#image-text-color').val();
-                    var imagetextsize = $('#image-text-size').val();
-                    var maxWidth = 200 - leftpadding;
-                    var lineHeight = 25;
-
-                    context.font = context.font.replace(/\d+px/, imagetextsize + "px");
-                    context.fillStyle = imagetextcolor;
-                    // context.fillText(imagetext, leftpadding, toppadding);
-                    wrapText(context,imagetext, leftpadding, toppadding, maxWidth, lineHeight);
-
-                    var pushto = document.getElementById("crop-preview");
-                    pushto.appendChild(textcanvas);
+                    drawCanvas(textcanvas, context);
                  }, false);
+                document.getElementById('image-text-top-padding').addEventListener('input', function (evt) {
+                    drawCanvas(textcanvas, context);
+                });
+                document.getElementById('image-text-left-padding').addEventListener('input', function (evt) {
+                    drawCanvas(textcanvas, context);
+                });
+                document.getElementById('image-text-color').addEventListener('input', function (evt) {
+                    drawCanvas(textcanvas, context);
+                });
+                document.getElementById('image-text-size').addEventListener('input', function (evt) {
+                    drawCanvas(textcanvas, context);
+                });
 
                 $('#rotate-right').click(function() {
                     cropper.rotate(45);
@@ -288,6 +286,33 @@
                     }
                 }
                 context.fillText(line, x, y);
+            }
+
+            function drawCanvas(textcanvas, context) {
+                // get preview div
+                var pushto = document.getElementById("crop-preview");
+                // remove existing canvas
+                try{
+                    context.clearRect(0, 0, textcanvas.width, textcanvas.height);
+                }catch(err) {
+                    // proceed to draw canvas
+                }
+
+                var imagetext = $('#image-text').val();
+                var toppadding = $('#image-text-top-padding').val();
+                var leftpadding = $('#image-text-left-padding').val();
+                var imagetextcolor = $('#image-text-color').val();
+                var imagetextsize = $('#image-text-size').val();
+                var maxWidth = 200 - leftpadding;
+                var lineHeight = 25;
+
+                context.font = context.font.replace(/\d+px/, imagetextsize + "px");
+                context.fillStyle = imagetextcolor;
+                // context.fillText(imagetext, leftpadding, toppadding);
+                wrapText(context,imagetext, leftpadding, toppadding, maxWidth, lineHeight);
+
+                // push canvas to preview div
+                pushto.appendChild(textcanvas);
             }
 
         </script>
