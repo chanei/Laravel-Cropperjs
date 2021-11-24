@@ -13,3 +13,7 @@ Usage
 <code>
 <https://github.com/geongeorge/Canvas-Txt>
 </code>
+
+<p>
+it turns out canvas txt removes the image canvas and only draws the text
+</p>
